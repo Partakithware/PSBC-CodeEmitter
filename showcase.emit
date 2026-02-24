@@ -1,18 +1,17 @@
 // ============================================================
 //  showcase.emit  —  A working x86-64 Linux ELF that prints
-//  "Hello from the upgraded Emit engine!" and exits cleanly.
+//  "Hello from the upgraded Emit engine!"
+//  and exits cleanly.
 //
 //  Run:  ./emitter showcase.emit showcase && chmod +x showcase && ./showcase
 //
 //  Demonstrates:
 //    • #include "emit_dictionary.h"
 //    • #define constant math
-//    • Dictionary macros (ELF64_IDENT, ELF_ET_EXEC, X64_WRITE_1...)
+//    • Dictionary macros (X64_WRITE_1, X64_MOV_RDX32, PAD_TO_16...)
 //    • LEA_REL / EMIT_SIZE  (auto-calc string address & length)
-//    • ALIGN / PAD_TO_PAGE
 //    • PLACE_EMIT usage
 //    • // and /* */ comments
-//    • Optional commas between values
 // ============================================================
 
 #include "emit_dictionary.h"
@@ -24,17 +23,12 @@
 
 // ELF64 header = 64 bytes, one program header = 56 bytes
 #define HDR_SIZE        120
-// Total file size = headers + one page of code/data
+// Total file size = headers + one page of code/data (PAGE_SIZE is from dict)
 #define FILE_SIZE       (HDR_SIZE + PAGE_SIZE)
 
 // ============================================================
-//  ELF64 Header  (64 bytes)
+//  ELF64 Header & Program Header
 // ============================================================
-// &
-// ============================================================
-//  Program Header  (56 bytes)
-// ============================================================
-// \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 
 PLACE_EMIT "headers/elf64.emit"
 
@@ -48,10 +42,12 @@ LABEL _start
 // X64_WRITE_1: complete self-contained macro = mov rax,1 + mov rdi,1 (14 bytes)
 X64_WRITE_1
 
+// lea rsi, [rip + message]
 LEA_REL message
 
-// mov rdx, <len>  — opcode prefix + EMIT_SIZE patch
-EMIT u8 0x48 0xC7 0xC2
+// mov rdx, <len>  
+// Uses dictionary prefix macro, followed by EMIT_SIZE dynamic patch
+X64_MOV_RDX32
 EMIT_SIZE message message_end
 
 X64_SYSCALL
@@ -63,7 +59,8 @@ X64_EXIT_0
 //  Data
 // ============================================================
 
-ALIGN 16 0x00
+// Align data section to 16 bytes using dictionary macro
+PAD_TO_16
 
 LABEL message
 STRING_DATA "Hello from the upgraded Emit engine!\n Detecting the distance just fine!\n"
