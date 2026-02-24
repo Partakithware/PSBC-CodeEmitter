@@ -1,7 +1,7 @@
 Temporary AI defined readme.....will be replaced in later updates to be more accurate and better defined.
 ---
 
-The Preprocessed Symbolic Binary Composer
+The Preprocessed Symbolic Binary Composer (Early edition many changes will likely be made)
 
 A format-agnostic, two-pass engine for authoring structured binary files through symbolic labels, compile-time expressions, and C-style preprocessor logic.
 Technical Definition
